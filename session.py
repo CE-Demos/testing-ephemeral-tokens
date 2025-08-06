@@ -2,6 +2,7 @@ import asyncio
 import io
 import argparse
 import os
+import datetime
 import wave
 from google import genai
 from google.genai import types
@@ -17,13 +18,33 @@ if not api_key:
     exit()  # Stop the script if the key is missing
 print("✅ API Key successfully found. Initializing client...")
 
-# --- Initialization ---
-client = genai.Client(api_key=api_key)
+# --- Initialization for Token Management ---
+# This client uses the main API key and is only for creating ephemeral tokens.
+management_client = genai.Client(
+    api_key=api_key,
+    http_options={'api_version': 'v1alpha'}
+)
 HANDLE_FILE = "session_handle.txt"
 # Use the native audio model for audio I/O
 model = "gemini-2.5-flash-preview-native-audio-dialog"
 
 async def main():
+    # --- NEW: Create an Ephemeral Token for this session ---
+    print("🔑 Creating an ephemeral token...")
+    now = datetime.datetime.now(tz=datetime.timezone.utc)
+    token = management_client.auth_tokens.create(
+        config = {
+            'uses': 1, # The token can only be used to start a single session
+            'expire_time': now + datetime.timedelta(minutes=30), # The token itself expires in 30 minutes
+            'new_session_expire_time': now + datetime.timedelta(minutes=1), # The session must be started within 1 minute
+        }
+    )
+    print(f"✅ Ephemeral token created. Session must start before {now + datetime.timedelta(minutes=1)}.")
+    session_client = genai.Client(
+        api_key=token.name,
+        http_options={'api_version': 'v1alpha'}
+    )
+
     # --- 0. PARSE ARGUMENTS ---
     parser = argparse.ArgumentParser(description="Connect to Gemini Live API with session resumption.")
     parser.add_argument(
@@ -46,8 +67,8 @@ async def main():
             print("✅ No previous session file found. Starting a new session.")
 
     # --- 2. CONNECT TO THE API ---
-    print("Connecting to the service...")
-    async with client.aio.live.connect(
+    print("Connecting to the service with the ephemeral token...")
+    async with session_client.aio.live.connect(
         model=model,
         config=types.LiveConnectConfig(
             response_modalities=["AUDIO"],
