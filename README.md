@@ -4,6 +4,8 @@ create a Python virtual env
 
 pip install -r requirements.txt
 
+remember to export your GOOGLE_API_KEY before running the scripts
+
 run python session.py for initial run
 
 post that running session.py will try resuming the same session

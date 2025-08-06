@@ -52,6 +52,12 @@ async def main():
         action="store_true",
         help="Force a new session by ignoring any existing session handle.",
     )
+    parser.add_argument(
+        "--input-file",
+        type=str,
+        default="download.wav",
+        help="Path to the input audio file to process.",
+    )
     args = parser.parse_args()
 
     # --- 1. HANDLE SESSION RESUMPTION ---
@@ -83,17 +89,18 @@ async def main():
         print("✅ Connection successful.")
 
         # --- 3. SEND AUDIO FILE ---
-        print("🔊 Loading and processing 'download.wav'...")
+        input_filename = args.input_file
+        print(f"🔊 Loading and processing '{input_filename}'...")
         buffer = io.BytesIO()
         try:
-            y, sr = librosa.load("download.wav", sr=16000)
+            y, sr = librosa.load(input_filename, sr=16000)
             sf.write(buffer, y, sr, format='RAW', subtype='PCM_16')
             buffer.seek(0)
             audio_bytes = buffer.read()
             print("✅ Audio file processed.")
         except Exception as e:
             print(f"🔴 Error loading audio file: {e}")
-            print("Please make sure 'download.wav' is in the same directory.")
+            print(f"Please make sure '{input_filename}' is a valid audio file.")
             return
 
         print("▶️  Sending audio data to Gemini...")
@@ -106,7 +113,7 @@ async def main():
 
         # --- 4. RECEIVE AUDIO RESPONSE ---
         new_session_handle = None
-        output_audio_file = "response_audio.wav"
+        output_audio_file = f"gemini_response_{os.path.basename(input_filename)}"
 
         print(f"🎧 Preparing to receive audio response and save to '{output_audio_file}'...")
         with wave.open(output_audio_file, "wb") as wf:
