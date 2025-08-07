@@ -6,3 +6,4 @@ test/
 # Project Files
 *.wav
 *.txt
+.env
