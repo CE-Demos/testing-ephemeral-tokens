@@ -53,6 +53,7 @@ This application demonstrates a real-time voice chat with the Gemini Live API us
 
     The server will start on `ws://localhost:8765`.
 
-4.  **Open the frontend**: Open the `index.html` file in your web browser.
+4.  **Open the frontend**: Open the `index.html` file in your web browser. Or alternatively, you can run the command `python -m http.server 8000` from the root folder of the directory.
+
 
 5.  **Start Chatting**: Click the "Start Recording" button, speak, and then click "Stop Recording". You should hear Gemini's response played back.
