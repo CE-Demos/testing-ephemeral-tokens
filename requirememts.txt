@@ -1,0 +1,4 @@
+google-genai
+websockets==12.0
+librosa
+pydub

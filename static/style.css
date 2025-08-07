@@ -32,3 +32,15 @@ h1 {
     font-style: italic;
     color: #666;
 }
+
+#transcript-container {
+    margin-top: 2rem;
+    width: 80%;
+    max-width: 600px;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 1rem;
+    min-height: 100px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}

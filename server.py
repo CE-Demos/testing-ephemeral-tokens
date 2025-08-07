@@ -8,6 +8,7 @@ import logging
 from pydub import AudioSegment
 from pydub.utils import get_prober_name
 import io
+import wave
 
 # --- Configuration ---
 logging.basicConfig(
@@ -79,6 +80,7 @@ async def gemini_audio_session(websocket, session_handle):
             model=model,
             config=types.LiveConnectConfig(
                 response_modalities=["AUDIO"],
+                system_instruction="You are a helpful assistant and answer in a friendly tone.",
                 session_resumption=types.SessionResumptionConfig(handle=session_handle),
             ),
         ) as session:
@@ -87,21 +89,49 @@ async def gemini_audio_session(websocket, session_handle):
 
             # Task to stream Gemini's response back to the client
             async def receive_from_gemini():
-                try:
-                    async for response in session.receive():
-                        if response.data:
-                            await websocket.send(response.data)
-                        if response.session_resumption_update:
-                            update = response.session_resumption_update
-                            if update.resumable and update.new_handle:
-                                logger.info(f"✅ Received new resumable handle: {update.new_handle[:10]}...")
-                                SESSION_HANDLES[websocket.remote_address] = update.new_handle
-                        if response.server_content and response.server_content.turn_complete:
-                            logger.info("✅ Gemini indicated the turn is complete.")
-                            await websocket.send("STATUS: Gemini turn complete. Ready to record.")
-                except Exception as e:
-                    logger.error(f"Error receiving from Gemini: {e}")
-                    await websocket.send(f"ERROR: Gemini connection error: {e}")
+                # This outer loop handles multiple conversational turns.
+                while True:
+                    # Buffer to hold raw PCM data from Gemini for one turn
+                    turn_audio_buffer = io.BytesIO()
+                    try:
+                        # This inner loop receives data for a single turn.
+                        async for response in session.receive():
+                            if response.data:
+                                turn_audio_buffer.write(response.data)
+
+                            if response.session_resumption_update:
+                                update = response.session_resumption_update
+                                if update.resumable and update.new_handle:
+                                    logger.info(f"✅ Received new resumable handle: {update.new_handle[:10]}...")
+                                    SESSION_HANDLES[websocket.remote_address] = update.new_handle
+                            
+                            # When the turn is complete, process the audio and break the inner loop.
+                            if response.server_content and response.server_content.turn_complete:
+                                logger.info("✅ Gemini indicated the turn is complete.")
+                                
+                                turn_audio_buffer.seek(0)
+                                pcm_data = turn_audio_buffer.read()
+
+                                if pcm_data:
+                                    logger.info(f"Packaging {len(pcm_data)} bytes of PCM data into a WAV file.")
+                                    wav_in_memory = io.BytesIO()
+                                    with wave.open(wav_in_memory, "wb") as wf:
+                                        wf.setnchannels(1)
+                                        wf.setsampwidth(2)
+                                        wf.setframerate(24000)
+                                        wf.writeframes(pcm_data)
+                                    
+                                    wav_in_memory.seek(0)
+                                    await websocket.send(wav_in_memory.read())
+                                
+                                await websocket.send("STATUS: Gemini turn complete. Ready to record.")
+                                # Break from the inner `async for` to wait for the next turn in the `while True` loop.
+                                break
+                    except Exception as e:
+                        logger.error(f"Error receiving from Gemini: {e}")
+                        await websocket.send(f"ERROR: Gemini connection error: {e}")
+                        # On error, break the outer while loop to terminate the task.
+                        break
 
             gemini_task = asyncio.create_task(receive_from_gemini())
 
@@ -115,7 +145,10 @@ async def gemini_audio_session(websocket, session_handle):
                     audio_buffer.seek(0)
 
                     try:
-                        audio_segment = AudioSegment.from_file(audio_buffer, format="webm")
+                        # Be more specific about the input format to help ffmpeg
+                        audio_segment = AudioSegment.from_file(
+                            audio_buffer, format="webm", codec="opus"
+                        )
                         audio_segment = audio_segment.set_frame_rate(16000).set_channels(1)
                         pcm_data = audio_segment.raw_data
                         
