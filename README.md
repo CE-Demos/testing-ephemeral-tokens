@@ -33,19 +33,13 @@ This application demonstrates a real-time voice chat with the Gemini Live API us
 
 ## Setup and Running
 
-1.  **Set your API Key**: The backend script requires your Google API key. Set it as an environment variable.
-
-    ```bash
-    export GOOGLE_API_KEY='YOUR_API_KEY_HERE'
-    ```
-
-2.  **Install Python dependencies**:
+1.  **Install Python dependencies**:
 
     ```bash
     pip install -r requirements.txt
     ```
 
-3.  **Run the backend server**:
+2.  **Run the backend server**:
 
     ```bash
     python server.py
@@ -53,7 +47,7 @@ This application demonstrates a real-time voice chat with the Gemini Live API us
 
     The server will start on `ws://localhost:8765`.
 
-4.  **Open the frontend**: Open the `index.html` file in your web browser. Or alternatively, you can run the command `python -m http.server 8000` from the root folder of the directory.
+3.  **Open the frontend**: Open the `index.html` file in your web browser. Or alternatively, you can run the command `python -m http.server 8000` from the root folder of the directory.
 
 
-5.  **Start Chatting**: Click the "Start Recording" button, speak, and then click "Stop Recording". You should hear Gemini's response played back.
+4.  **Start Chatting**: Click the "Start Recording" button, speak, and then click "Stop Recording". You should hear Gemini's response played back.

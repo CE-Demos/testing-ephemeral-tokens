@@ -27,23 +27,15 @@ except Exception:
     logger.error("   - On Ubuntu/Debian: sudo apt update && sudo apt install ffmpeg")
     exit()
 
-# --- API Key Check ---
-api_key = os.getenv("GOOGLE_API_KEY")
-if not api_key:
-    logger.error("🔴 Error: The GOOGLE_API_KEY environment variable was not found.")
-    logger.error("Please set it in your terminal before running the script:")
-    logger.error("   export GOOGLE_API_KEY='YOUR_API_KEY_HERE'")
-    exit()
-logger.info("✅ API Key successfully found.")
-
 # --- Gemini Client for Token Management ---
 try:
+    # When no api_key is provided, the client will use Application Default Credentials.
+    # Ensure you have run `gcloud auth application-default login` as per the README.
     management_client = genai.Client(
-        api_key=api_key,
         http_options={'api_version': 'v1alpha'}
     )
     model = "gemini-2.5-flash-preview-native-audio-dialog"
-    logger.info("✅ Management client initialized.")
+    logger.info("✅ Management client initialized using Application Default Credentials.")
 except Exception as e:
     logger.error(f"🔴 Failed to initialize management client: {e}")
     exit()
