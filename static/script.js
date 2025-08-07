@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const recordButton = document.getElementById('recordButton');
     const statusDiv = document.getElementById('status');
-    const transcriptText = document.getElementById('transcript-text');
     const WEBSOCKET_URL = 'ws://localhost:8765';
 
     let websocket;
@@ -61,10 +60,6 @@ document.addEventListener('DOMContentLoaded', () => {
             statusDiv.textContent = `Error: ${errorMsg}`;
             recordButton.disabled = true;
         }
-        else if (message.startsWith('TRANSCRIPT:')) {
-            const transcript = message.substring('TRANSCRIPT:'.length);
-            transcriptText.textContent = transcript;
-        }
     }
 
     async function handleAudioMessage(audioData) {
@@ -116,7 +111,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (websocket.readyState === WebSocket.OPEN) {
                     websocket.send('END_OF_STREAM');
                 }
-                transcriptText.textContent = '...'; // Clear previous transcript
                 statusDiv.textContent = 'Processing audio...';
                 recordButton.disabled = true; // Disable until Gemini turn is complete
             };
