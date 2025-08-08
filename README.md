@@ -33,18 +33,7 @@ This application demonstrates a real-time voice chat with the Gemini Live API us
 
 ## Setup and Running
 
-1.  **Authenticate and Configure Google Cloud**:
-    Log in with your Google account and set the project to be used for billing and permissions. Replace `YOUR_PROJECT_ID` with your actual Google Cloud Project ID.
-
-    ```bash
-    # Log in with your Google account
-    gcloud auth application-default login
-
-    # Set the project to be used for billing and permissions
-    gcloud config set project YOUR_PROJECT_ID
-    ```
-
-2.  **Create and Activate a Virtual Environment**:
+1.  **Create and Activate a Virtual Environment**:
     It's a best practice to use a virtual environment to manage project dependencies.
 
     ```bash
@@ -56,6 +45,21 @@ This application demonstrates a real-time voice chat with the Gemini Live API us
     source venv/bin/activate
     # On Windows (Command Prompt):
     # .\venv\Scripts\activate
+    ```
+
+2.  **Authenticate and Configure Google Cloud**:
+    Log in with your Google account and set the project to be used for billing and permissions. Replace `YOUR_PROJECT_ID` with your actual Google Cloud Project ID.
+
+    ```bash
+    # Log in with your Google account
+    gcloud auth application-default login
+
+    # Set the project to be used for billing and permissions
+    gcloud config set project YOUR_PROJECT_ID
+
+    # Export your Google API KEY
+    export GOOGLE_API_KEY=YOUR_API_KEY
+
     ```
 
 3.  **Install Python dependencies**:
